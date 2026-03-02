@@ -15,8 +15,20 @@ function App() {
 		setTasks([...tasks, { ...task, completed: false, id: Date.now() }])
 	}
 
+	function deleteTask(id) {
+		setTasks(tasks.filter(task => task.id !== id))
+	}
+
+	function completeTask(id) {
+		setTasks(
+			tasks.map(task => (task.id === id ? { ...task, completed: true } : task)),
+		)
+	}
+
 	const activeTasks = tasks.filter(task => !task.completed)
 	const completedTasks = tasks.filter(task => task.completed)
+
+	console.log(completedTasks)
 
 	return (
 		<div className='app'>
@@ -43,7 +55,13 @@ function App() {
 					<button className='sort-button'>By Date</button>
 					<button className='sort-button'>By Priority</button>
 				</div>
-				{openSection.tasks && <TaskList activeTasks={activeTasks} />}
+				{openSection.tasks && (
+					<TaskList
+						completeTask={completeTask}
+						deleteTask={deleteTask}
+						activeTasks={activeTasks}
+					/>
+				)}
 			</div>
 
 			<div className='completed-task-container'>
@@ -54,7 +72,12 @@ function App() {
 				>
 					+
 				</button>
-				{openSection.completedForm && <CompletedTaskList />}
+				{openSection.completedForm && (
+					<CompletedTaskList
+						deleteTask={deleteTask}
+						completedTasks={completedTasks}
+					/>
+				)}
 			</div>
 			<Footer />
 		</div>
@@ -103,27 +126,37 @@ function TaskForm({ addTask }) {
 }
 
 /// Тут компонент подвторую форму
-function TaskList({ activeTasks }) {
+function TaskList({ activeTasks, deleteTask, completeTask }) {
 	//в этот массив мы передалаи activeTasks в котором незавершенный таски
 	console.log(activeTasks)
 	return (
 		<ul className='task-list'>
 			{activeTasks.map(task => (
-				<TaskItem task={task} key={task.id} />
+				<TaskItem
+					completeTask={completeTask}
+					deleteTask={deleteTask}
+					task={task}
+					key={task.id}
+				/>
 			))}
 		</ul>
 	)
 }
 
 /// Тут компонент выполненные задачи
-function CompletedTaskList({ completedTasks }) {
-	return <ul className='completed-task-list'>{/* <TaskItem /> */}</ul>
+function CompletedTaskList({ completedTasks, deleteTask }) {
+	return (
+		<ul className='completed-task-list'>
+			{completedTasks.map(task => (
+				<TaskItem key={task.id} task={task} deleteTask={deleteTask} />
+			))}
+		</ul>
+	)
 }
 
 /// Тут мы делаем компоненты (элементы), которые будут в списке, который выше.
-function TaskItem({ task }) {
-	console.log()
-	const { title, priority, deadline, id } = task
+function TaskItem({ task, deleteTask, completeTask }) {
+	const { title, priority, deadline, id, completed } = task
 	return (
 		<li className={`task-item ${priority.toLowerCase()}`}>
 			<div className='task-info'>
@@ -135,8 +168,14 @@ function TaskItem({ task }) {
 				</div>
 			</div>
 			<div className='task-buttons'>
-				<button className='complete-button'>Complete</button>
-				<button className='delete-button'>Delete</button>
+				{completed !== true ? (
+					<button className='complete-button' onClick={() => completeTask(id)}>
+						Complete
+					</button>
+				) : null}
+				<button className='delete-button' onClick={() => deleteTask(id)}>
+					Delete
+				</button>
 			</div>
 		</li>
 	)
